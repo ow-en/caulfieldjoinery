@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+@theme {
+  /* Palette — pulled from the shop, not a generic AI default:
+     bone-colored shop paper, walnut ink, oiled-oak accent, sage for
+     status. Deliberately warmer/duller than the usual cream+terracotta
+     pairing. */
+  --color-paper: #faf5ec;
+  --color-surface: #ffffff;
+  --color-ink: #2b2118;
+  --color-ink-muted: #6b5d4f;
+  --color-rule: #ddd0b8;
+  --color-oak: #8b5e34;
+  --color-oak-dark: #6e4726;
+  --color-sage: #6b7a5e;
+  --color-rust: #a8502f;
+
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+body {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+/* Signature element: a ruler-tick divider instead of a plain hairline —
+   short ticks like a measuring tape, used between page sections. */
+.tick-rule {
+  height: 1px;
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--color-rule) 0,
+    var(--color-rule) 1px,
+    transparent 1px,
+    transparent 8px
+  );
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-oak);
+  outline-offset: 2px;
+}

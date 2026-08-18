@@ -1,0 +1,173 @@
+"use client";
+
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Plus, Trash2 } from "lucide-react";
+import { api, type NewCustomer } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+
+const customerSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Enter a valid email"),
+  phone: z.string().optional(),
+  address: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+export default function CustomersPage() {
+  const [showForm, setShowForm] = useState(false);
+  const queryClient = useQueryClient();
+
+  const { data: customers, isLoading, isError, error } = useQuery({
+    queryKey: ["customers"],
+    queryFn: api.customers.list,
+  });
+
+  const createCustomer = useMutation({
+    mutationFn: (data: NewCustomer) => api.customers.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["customers"] });
+      setShowForm(false);
+    },
+  });
+
+  const deleteCustomer = useMutation({
+    mutationFn: (id: string) => api.customers.delete(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["customers"] }),
+  });
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<z.infer<typeof customerSchema>>({
+    resolver: zodResolver(customerSchema),
+  });
+
+  const onSubmit = handleSubmit((data) => {
+    createCustomer.mutate(data);
+    reset();
+  });
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <h1 className="font-[family-name:var(--font-display)] text-3xl text-[var(--color-ink)]">
+          Customers
+        </h1>
+        <Button onClick={() => setShowForm((v) => !v)}>
+          <Plus size={16} className="mr-1.5" />
+          New customer
+        </Button>
+      </div>
+      <div className="tick-rule mb-8" />
+
+      {showForm && (
+        <form
+          onSubmit={onSubmit}
+          className="mb-10 bg-[var(--color-surface)] border border-[var(--color-rule)] rounded-sm p-6 grid grid-cols-2 gap-4"
+        >
+          <div className="col-span-1">
+            <label className="block text-sm text-[var(--color-ink-muted)] mb-1">Name</label>
+            <input
+              {...register("name")}
+              className="w-full border border-[var(--color-rule)] rounded-sm px-3 py-2 text-sm bg-white"
+            />
+            {errors.name && (
+              <p className="text-xs text-[var(--color-rust)] mt-1">{errors.name.message}</p>
+            )}
+          </div>
+          <div className="col-span-1">
+            <label className="block text-sm text-[var(--color-ink-muted)] mb-1">Email</label>
+            <input
+              {...register("email")}
+              className="w-full border border-[var(--color-rule)] rounded-sm px-3 py-2 text-sm bg-white"
+            />
+            {errors.email && (
+              <p className="text-xs text-[var(--color-rust)] mt-1">{errors.email.message}</p>
+            )}
+          </div>
+          <div className="col-span-1">
+            <label className="block text-sm text-[var(--color-ink-muted)] mb-1">Phone</label>
+            <input
+              {...register("phone")}
+              className="w-full border border-[var(--color-rule)] rounded-sm px-3 py-2 text-sm bg-white"
+            />
+          </div>
+          <div className="col-span-1">
+            <label className="block text-sm text-[var(--color-ink-muted)] mb-1">Address</label>
+            <input
+              {...register("address")}
+              className="w-full border border-[var(--color-rule)] rounded-sm px-3 py-2 text-sm bg-white"
+            />
+          </div>
+          <div className="col-span-2">
+            <label className="block text-sm text-[var(--color-ink-muted)] mb-1">Notes</label>
+            <textarea
+              {...register("notes")}
+              rows={2}
+              className="w-full border border-[var(--color-rule)] rounded-sm px-3 py-2 text-sm bg-white"
+            />
+          </div>
+          <div className="col-span-2 flex justify-end gap-2 pt-2">
+            <Button type="button" variant="ghost" onClick={() => setShowForm(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={createCustomer.isPending}>
+              {createCustomer.isPending ? "Saving…" : "Save customer"}
+            </Button>
+          </div>
+          {createCustomer.isError && (
+            <p className="col-span-2 text-sm text-[var(--color-rust)]">
+              {(createCustomer.error as Error).message}
+            </p>
+          )}
+        </form>
+      )}
+
+      {isLoading && <p className="text-[var(--color-ink-muted)]">Loading customers…</p>}
+
+      {isError && (
+        <p className="text-[var(--color-rust)]">
+          Couldn&apos;t reach the API: {(error as Error).message}. Is caulfield-api running on
+          localhost:8080?
+        </p>
+      )}
+
+      {customers && customers.length === 0 && (
+        <p className="text-[var(--color-ink-muted)]">
+          No customers yet. Add your first one above.
+        </p>
+      )}
+
+      {customers && customers.length > 0 && (
+        <div className="bg-[var(--color-surface)] border border-[var(--color-rule)] rounded-sm divide-y divide-[var(--color-rule)]">
+          {customers.map((customer) => (
+            <div key={customer.id} className="flex items-center justify-between px-5 py-4">
+              <div>
+                <p className="font-medium text-[var(--color-ink)]">{customer.name}</p>
+                <p className="text-sm text-[var(--color-ink-muted)]">{customer.email}</p>
+                {customer.phone && (
+                  <p className="text-sm font-[family-name:var(--font-mono)] text-[var(--color-ink-muted)]">
+                    {customer.phone}
+                  </p>
+                )}
+              </div>
+              <button
+                onClick={() => deleteCustomer.mutate(customer.id)}
+                className="text-[var(--color-ink-muted)] hover:text-[var(--color-rust)] p-2"
+                aria-label={`Delete ${customer.name}`}
+              >
+                <Trash2 size={16} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
