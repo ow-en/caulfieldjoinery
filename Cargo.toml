@@ -1,0 +1,33 @@
+[package]
+name = "caulfield-api"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Web framework
+axum = "0.8"
+
+# Async runtime — Axum is built on top of this
+tokio = { version = "1", features = ["full"] }
+
+# Database: compile-time checked SQL against Postgres
+sqlx = { version = "0.9", features = ["runtime-tokio", "postgres", "uuid", "chrono", "rust_decimal", "macros"] }
+
+# Serialize/deserialize Rust structs <-> JSON
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# UUID and timestamp/decimal types shared between sqlx and serde
+uuid = { version = "1", features = ["serde", "v4"] }
+chrono = { version = "0.4", features = ["serde"] }
+rust_decimal = { version = "1", features = ["serde"] }
+
+# Load DATABASE_URL etc. from a .env file in development
+dotenvy = "0.15"
+
+# Structured logging — lets you see what your API is doing
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# CORS so your Next.js frontend (different port/origin) can call this API
+tower-http = { version = "0.6", features = ["cors", "trace"] }
