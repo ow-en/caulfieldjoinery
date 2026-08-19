@@ -54,22 +54,27 @@ export default function CustomersPage() {
   });
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-2">
-        <h1 className="font-[family-name:var(--font-display)] text-3xl text-[var(--color-ink)]">
-          Customers
-        </h1>
+    <div className="fade-in">
+      <div className="flex items-end justify-between mb-2">
+        <div>
+          <p className="font-[family-name:var(--font-mono)] text-xs uppercase tracking-widest text-[var(--color-oak)] mb-3">
+            Contacts
+          </p>
+          <h1 className="font-[family-name:var(--font-display)] font-semibold text-4xl tracking-tight text-[var(--color-ink)]">
+            Customers
+          </h1>
+        </div>
         <Button onClick={() => setShowForm((v) => !v)}>
           <Plus size={16} className="mr-1.5" />
           New customer
         </Button>
       </div>
-      <div className="tick-rule mb-8" />
+      <div className="tick-rule my-8" />
 
       {showForm && (
         <form
           onSubmit={onSubmit}
-          className="mb-10 bg-[var(--color-surface)] border border-[var(--color-rule)] rounded-sm p-6 grid grid-cols-2 gap-4"
+          className="mb-10 bg-[var(--color-surface)] border border-[var(--color-rule)] rounded-md p-8 grid grid-cols-2 gap-5"
         >
           <div className="col-span-1">
             <label className="block text-sm text-[var(--color-ink-muted)] mb-1">Name</label>
@@ -145,21 +150,24 @@ export default function CustomersPage() {
       )}
 
       {customers && customers.length > 0 && (
-        <div className="bg-[var(--color-surface)] border border-[var(--color-rule)] rounded-sm divide-y divide-[var(--color-rule)]">
+        <div className="grid gap-3">
           {customers.map((customer) => (
-            <div key={customer.id} className="flex items-center justify-between px-5 py-4">
+            <div
+              key={customer.id}
+              className="flex items-center justify-between rounded-md border border-[var(--color-rule)] bg-[var(--color-surface)] px-6 py-5 transition-all hover:border-[var(--color-oak)] hover:shadow-[0_4px_20px_-8px_rgba(43,33,24,0.12)]"
+            >
               <div>
-                <p className="font-medium text-[var(--color-ink)]">{customer.name}</p>
-                <p className="text-sm text-[var(--color-ink-muted)]">{customer.email}</p>
+                <p className="font-[family-name:var(--font-display)] font-medium text-lg text-[var(--color-ink)]">{customer.name}</p>
+                <p className="text-sm text-[var(--color-ink-muted)] mt-0.5">{customer.email}</p>
                 {customer.phone && (
-                  <p className="text-sm font-[family-name:var(--font-mono)] text-[var(--color-ink-muted)]">
+                  <p className="text-sm font-[family-name:var(--font-mono)] text-[var(--color-ink-faint)] mt-0.5">
                     {customer.phone}
                   </p>
                 )}
               </div>
               <button
                 onClick={() => deleteCustomer.mutate(customer.id)}
-                className="text-[var(--color-ink-muted)] hover:text-[var(--color-rust)] p-2"
+                className="text-[var(--color-ink-faint)] hover:text-[var(--color-rust)] p-2 transition-colors"
                 aria-label={`Delete ${customer.name}`}
               >
                 <Trash2 size={16} />

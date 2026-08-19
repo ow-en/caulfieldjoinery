@@ -1,29 +1,48 @@
 @import "tailwindcss";
 
+/* Tailwind v4 defaults dark: to prefers-color-scheme — this switches it
+   to class-based, driven by next-themes adding/removing .dark on <html>. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
-  /* Palette — pulled from the shop, not a generic AI default:
-     bone-colored shop paper, walnut ink, oiled-oak accent, sage for
-     status. Deliberately warmer/duller than the usual cream+terracotta
-     pairing. */
-  --color-paper: #faf5ec;
-  --color-surface: #ffffff;
+  /* Light palette — warm shop paper and oiled oak. */
+  --color-paper: #f7f2e7;
+  --color-surface: #fffdf9;
   --color-ink: #2b2118;
   --color-ink-muted: #6b5d4f;
-  --color-rule: #ddd0b8;
+  --color-ink-faint: #a89880;
+  --color-rule: #e4d8bf;
   --color-oak: #8b5e34;
   --color-oak-dark: #6e4726;
   --color-sage: #6b7a5e;
-  --color-rust: #a8502f;
+  --color-rust: #b1542e;
 
-  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+/* Dark palette — the background stays a neutral near-black (no brown
+   cast), so the "wood" association lives entirely in the text and
+   accent colors rather than in a literal brown backdrop. */
+.dark {
+  --color-paper: #141414;
+  --color-surface: #1c1c1c;
+  --color-ink: #d9c7b3;
+  --color-ink-muted: #a68967;
+  --color-ink-faint: #6b5641;
+  --color-rule: #2c2c2c;
+  --color-oak: #c98a52;
+  --color-oak-dark: #e0a06e;
+  --color-sage: #8fa17e;
+  --color-rust: #d97a52;
 }
 
 body {
   background-color: var(--color-paper);
   color: var(--color-ink);
   font-family: var(--font-sans);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* Signature element: a ruler-tick divider instead of a plain hairline —
@@ -37,6 +56,27 @@ body {
     transparent 1px,
     transparent 8px
   );
+}
+
+.fade-in {
+  animation: fade-in 0.5s ease-out both;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-in {
+    animation: none;
+  }
 }
 
 :focus-visible {
