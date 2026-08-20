@@ -1,29 +1,59 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /**
  * Full-bleed hero: 4K video background, dark gradient for legibility,
  * and an oversized wordmark treated as the main graphic element rather
  * than a headline sitting on top of an image.
  *
- * Footage lives at /public/videos/hero.mp4 — replace that file directly
- * to swap it again later (same filename, no code change needed).
+ * The background plays as a chained sequence of clips rather than
+ * looping a single one — each clip plays once, then the next one
+ * starts, looping back to the first after the last. To add, remove,
+ * or reorder footage, just edit this array; drop new files in
+ * /public/videos/.
  */
-const VIDEO_SRC = "/videos/hero.mp4";
+const VIDEO_CLIPS = ["/videos/hero.mp4", "/videos/hero-workshop.mp4"];
 
 export function Hero() {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [clipIndex, setClipIndex] = useState(0);
 
   useEffect(() => {
-    // Respect prefers-reduced-motion: pause the video and let the
-    // static gradient + poster color stand in instead of autoplaying
-    // motion for people who've asked for less of it.
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (mediaQuery.matches) {
-      videoRef.current?.pause();
+    const video = videoRef.current;
+    if (!video) return;
+
+    // Respect prefers-reduced-motion: pause on the first clip and let
+    // the static gradient stand in, rather than autoplaying a chain
+    // of motion for people who've asked for less of it.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      video.pause();
+      return;
     }
+
+    // Advance to the next clip when the current one finishes, wrapping
+    // back to the start — this is what turns two separate files into
+    // one continuous background loop.
+    const handleEnded = () => {
+      setClipIndex((i) => (i + 1) % VIDEO_CLIPS.length);
+    };
+
+    video.addEventListener("ended", handleEnded);
+    return () => video.removeEventListener("ended", handleEnded);
   }, []);
+
+  // Whenever the active clip changes, load and play it — swapping
+  // `src` on an existing <video> and calling play() is how you chain
+  // clips, since a single <video> can only play one file at a time.
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.src = VIDEO_CLIPS[clipIndex];
+    video.play().catch(() => {
+      // Autoplay can be blocked before any user interaction — harmless
+      // here since the poster color still gives a reasonable fallback.
+    });
+  }, [clipIndex]);
 
   return (
     <section className="relative left-1/2 w-screen -translate-x-1/2 -mt-14 h-[92vh] min-h-[560px] overflow-hidden">
@@ -33,14 +63,11 @@ export function Hero() {
         className="absolute inset-0 h-full w-full object-cover"
         autoPlay
         muted
-        loop
         playsInline
         // A dark placeholder color shows immediately while the video
         // loads, so there's no flash of white behind light text.
         style={{ backgroundColor: "#141414" }}
-      >
-        <source src={VIDEO_SRC} type="video/mp4" />
-      </video>
+      />
 
       {/* Legibility gradient — darker at the bottom, where the type sits */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/50" />
@@ -51,7 +78,13 @@ export function Hero() {
           Custom furniture & joinery
         </p>
 
-        <h1 className="font-[family-name:var(--font-display)] font-black uppercase leading-[0.85] tracking-tight text-white select-none">
+        <h1
+          className="font-[family-name:var(--font-display)] font-black uppercase leading-[0.85] tracking-tight bg-clip-text text-transparent select-none"
+          style={{
+            backgroundImage:
+              "linear-gradient(135deg, #ffffff 0%, #f5d9b8 30%, #e0a06e 65%, #d97a52 100%)",
+          }}
+        >
           <span className="block text-[clamp(3.5rem,13vw,11rem)]">Caulfield</span>
           <span className="block text-[clamp(3.5rem,13vw,11rem)]">Joinery</span>
         </h1>
